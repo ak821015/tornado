@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تورنيدو · مركز الصيانة المتطور</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js للإحصائيات -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Luxon للتواريخ بشكل آمن -->
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+    <style>
+        /* ===== التصميم الحديث ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: #0b1220;
+            color: #e5e7eb;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #app { flex: 1; }
+
+        :root {
+            --primary: #3b82f6;
+            --accent: #6366f1;
+            --bg-deep: #0b1220;
+            --surface: #111827;
+            --surface-soft: #1f2937;
+            --text-main: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border-glow: rgba(59,130,246,0.3);
+            --card-shadow: 0 25px 50px -12px rgba(0,0,0,0.8), 0 0 0 1px rgba(59,130,246,0.15) inset;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 1.25rem;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 2rem;
+            padding: 1.75rem;
+            border: 1px solid rgba(255,255,255,0.03);
+            box-shadow: 0 20px 35px -8px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.5);
+            backdrop-filter: blur(2px);
+            transition: var(--transition);
+        }
+        .card:hover { box-shadow: 0 25px 45px -8px #0b1220, 0 0 0 1px var(--primary) inset; }
+
+        .glass {
+            background: rgba(17,24,39,0.7);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(59,130,246,0.25);
+            box-shadow: 0 20px 40px -15px black;
+        }
+
+        h2 { 
+            font-size: 2rem; 
+            margin-bottom: 1.5rem; 
+            background: linear-gradient(145deg, #fff, var(--text-secondary)); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            font-weight: 700;
+        }
+        
+        h3 { 
+            font-size: 1.5rem; 
+            color: var(--text-main); 
+            margin-bottom: 1rem; 
+            font-weight: 700;
+        }
+        
+        h4 {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin: 1.5rem 0 1rem;
+            font-weight: 600;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--bg-deep);
+            border: 1px solid #2d3a4f;
+            border-radius: 1.5rem;
+            color: var(--text-main);
+            font-size: 1rem;
+            transition: var(--transition);
+            margin: 0.5rem 0;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(59,130,246,0.2);
+        }
+
+        .btn {
+            padding: 0.85rem 2rem;
+            border-radius: 3rem;
+            font-weight: 600;
+            border: none;
+            background: var(--primary);
+            color: white;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            box-shadow: 0 8px 20px -5px rgba(59,130,246,0.5);
+        }
+        .btn:hover { background: #2563eb; transform: scale(1.02); box-shadow: 0 15px 25px -6px var(--primary); }
+        .btn.secondary { background: var(--surface-soft); box-shadow: none; }
+        .btn.secondary:hover { background: #2d3a4f; }
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: #059669; }
+        .btn-danger { background: var(--danger); box-shadow: 0 8px 18px -5px #ef444480; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-warning { background: var(--warning); }
+        .btn-warning:hover { background: #d97706; }
+
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            background: var(--surface-soft);
+            color: var(--text-secondary);
+        }
+        .badge.step1 { background: #3b82f620; color: #93c5fd; border: 1px solid #3b82f6; }
+        .badge.step2 { background: #f59e0b20; color: #fcd34d; border: 1px solid #f59e0b; }
+        .badge.completed { background: #10b98120; color: #6ee7b7; border: 1px solid #10b981; }
+        .badge.urgent { background: #ef444420; color: #fca5a5; border: 1px solid #ef4444; animation: pulse 2s infinite; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* ===== تحسينات لوحة التحكم ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, var(--surface), var(--surface-soft));
+            border-radius: 2rem;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(59,130,246,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 10px 30px -15px rgba(0,0,0,0.5);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 2rem 2rem 0 0;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px -15px var(--primary);
+        }
+
+        .stat-card .value {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(59,130,246,0.5);
+        }
+
+        .stat-card .label {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .stat-card .icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+        }
+
+        /* ===== أنماط التحليلات الذكية ===== */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .analytics-card {
+            background: var(--surface);
+            border-radius: 2rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(59,130,246,0.2);
+            box-shadow: 0 10px 25px -10px rgba(0,0,0,0.5);
+        }
+        
+        .analytics-card h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            margin-top: 0;
+            border-bottom: 1px solid #2d3a4f;
+            padding-bottom: 0.75rem;
+        }
+        
+        .alert-badge {
+            background: rgba(239,68,68,0.2);
+            border-right: 4px solid var(--danger);
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+            color: #fecaca;
+        }
+        .alert-badge.warning { border-right-color: var(--warning); background: rgba(245,158,11,0.1); }
+        .alert-badge.info { border-right-color: var(--primary); background: rgba(59,130,246,0.1); }
+        .alert-badge.success { border-right-color: var(--success); background: rgba(16,185,129,0.1); }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed #2d3a4f;
+        }
+        
+        .mini-chart-container { height: 200px; margin: 1rem 0; }
+        
+        .tech-rank {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+        }
+        .tech-rank .rank { background: var(--primary); padding: 0.2rem 0.8rem; border-radius: 2rem; font-size: 0.8rem; }
+        
+        .summary-box {
+            background: linear-gradient(145deg, #1a2635, #0f172a);
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            margin: 1rem 0;
+            border: 1px solid var(--primary);
+        }
+
+        /* ===== أنيميشن تحميل ===== */
+        @keyframes dashboardShimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        @keyframes dashboardRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-stat-card {
+            background: linear-gradient(145deg, var(--surface), var(--surface-soft));
+            border-radius: 2rem;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(59,130,246,0.2);
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--surface-soft);
+            border-top: 4px solid var(--primary);
+            border-right: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: dashboardRotate 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        .loading-text {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* ===== باقي التنسيقات ===== */
+        .header {
+            padding: 20px;
+            font-size: 22px;
+            font-weight: bold;
+            background: var(--surface);
+            text-align: center;
+            border-bottom: 2px solid var(--primary);
+            width: 100%;
+        }
+
+        .big-btn {
+            width: 100%;
+            padding: 40px 20px;
+            font-size: 24px;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            background: var(--primary);
+            color: white;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        .big-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+        }
+        .big-btn.secondary {
+            background: #475569;
+        }
+        .big-btn.secondary:hover {
+            background: #334155;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin: 1.5rem 0;
+        }
+        .tab-btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 3rem;
+            background: transparent;
+            border: 1px solid #2d3a4f;
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            flex: 1 0 auto;
+        }
+        .tab-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        .device-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .device-item {
+            background: var(--surface-soft);
+            border-radius: 2rem;
+            padding: 1.2rem 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            border: 1px solid #283548;
+            transition: 0.2s;
+            animation: slideFade 0.4s ease;
+        }
+        .device-item:hover { border-color: var(--primary); background: #253141; }
+
+        .section-title {
+            font-size: 20px;
+            margin: 20px 0 10px;
+            color: #60a5fa;
+            font-weight: 700;
+            padding-right: 10px;
+            border-right: 4px solid var(--primary);
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .search-box input {
+            padding-right: 3rem;
+            background: var(--bg-deep);
+            border: 2px solid var(--primary);
+            border-radius: 50px;
+            box-shadow: 0 0 20px var(--border-glow);
+            font-size: 16px;
+            height: 60px;
+        }
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            right: 20px;
+            top: 18px;
+            font-size: 22px;
+            color: var(--primary);
+            z-index: 1;
+            opacity: 0.8;
+        }
+
+        .detail-group {
+            margin: 20px 0;
+        }
+        .detail-label {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .detail-value {
+            background: #0f172a;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .timeline-step { 
+            display: flex; 
+            gap: 1rem; 
+            align-items: center; 
+            margin: 1.5rem 0; 
+            padding: 0.5rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 1rem;
+        }
+        .timeline-marker { 
+            width: 12px; 
+            height: 12px; 
+            border-radius: 20px; 
+            background: var(--primary); 
+        }
+
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            perspective: 1000px;
+        }
+        
+        .glass-login {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(37, 99, 235, 0.3);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(37, 99, 235, 0.2) inset;
+            animation: float 8s ease-in-out infinite;
+            transform-style: preserve-3d;
+            position: relative;
+            overflow: hidden;
+            max-width: 550px;
+            margin: 20px auto;
+            text-align: center;
+            border-radius: 24px;
+        }
+        
+        .glass-login::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+            z-index: 1;
+        }
+        
+        .login-content {
+            position: relative;
+            z-index: 2;
+            padding: 40px 30px;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotateX(0deg); }
+            50% { transform: translateY(-15px) rotateX(2deg); }
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .tornado-title {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a78bfa, #60a5fa, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(37, 99, 235, 0.5);
+            letter-spacing: 2px;
+            animation: glow 3s ease-in-out infinite;
+        }
+        
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 30px rgba(37, 99, 235, 0.5); }
+            50% { text-shadow: 0 0 60px rgba(37, 99, 235, 0.8); }
+        }
+        
+        .matrix-phrase {
+            font-size: 26px;
+            font-weight: 700;
+            color: #4ade80;
+            text-shadow: 0 0 15px #22c55e, 0 0 30px #15803d;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px 30px;
+            border-radius: 60px;
+            text-align: center;
+            letter-spacing: 2px;
+            border: 1px solid #4ade8040;
+            box-shadow: 0 0 40px #4ade8020;
+            transition: opacity 0.4s ease;
+            width: fit-content;
+            max-width: 90%;
+            backdrop-filter: blur(5px);
+            animation: matrixPulse 2s ease-in-out infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes matrixPulse {
+            0%, 100% { box-shadow: 0 0 30px #4ade8040; }
+            50% { box-shadow: 0 0 60px #4ade80; }
+        }
+
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            pointer-events: none;
+        }
+        .toast {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border-right: 6px solid var(--primary);
+            border-radius: 2rem;
+            padding: 1rem 1.8rem;
+            box-shadow: 0 20px 35px -10px black;
+            color: white;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transform: translateX(-100%);
+            animation: slideIn 0.3s forwards;
+            pointer-events: auto;
+            border: 1px solid #3b82f630;
+        }
+        .toast.success { border-right-color: var(--success); }
+        .toast.error { border-right-color: var(--danger); }
+        .toast.warning { border-right-color: var(--warning); }
+        
+        @keyframes slideIn { to { transform: translateX(0); } }
+        @keyframes slideFade {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid #334155;
+            margin: 25px 0;
+        }
+
+        .nav-bar {
+            background: var(--surface);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--primary);
+            width: 100%;
+        }
+        
+        .nav-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-btn {
+            padding: 8px 20px;
+            border-radius: 30px;
+            background: var(--surface-soft);
+            border: 1px solid #334155;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .nav-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .nav-btn.home-btn {
+            background: var(--primary);
+        }
+        
+        .nav-btn.home-btn:hover {
+            background: #1d4ed8;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            background: #020617;
+            font-size: 0.9rem;
+            border-top: 1px solid #1e293b;
+        }
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: bold;
+        }
+        footer a:hover { text-decoration: underline; }
+
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .card { padding: 20px; }
+            .big-btn { padding: 30px 15px; font-size: 20px; }
+            .device-item { flex-direction: column; align-items: flex-start; }
+            .btn { width: 100%; margin: 5px 0; }
+            .tornado-title { font-size: 36px; }
+            .matrix-phrase { font-size: 18px; padding: 12px 20px; }
+            .tabs { flex-direction: column; }
+            .tab-btn { width: 100%; }
+            .nav-bar { flex-direction: column; gap: 10px; }
+            .nav-buttons { width: 100%; justify-content: center; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .analytics-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <footer>
+        جميع الحقوق محفوظة لـ 
+        <a href="https://www.facebook.com/ali.khaled.244644" target="_blank">Ali Khaled</a> © 2026
+    </footer>
+    <div id="toast-container"></div>
+
+    <script>
+        (function() {
+            // ===== الإعدادات الأساسية =====
+            const API_URL = "https://script.google.com/macros/s/AKfycbxdXoP83JF3gkrd7WhPdPjZDotZvbIlXfq2Jb_mPZfXt_MJR0kVZUGGmtHxOBQS4Uex/exec";
+            let devices = [];
+            let originalDevices = [];
+            let dashboardStats = {
+                total: 0,
+                step1: 0,
+                step2: 0,
+                completed: 0
+            };
+            
+            // متغيرات إضافية للتطوير
+            let charts = {};
+            let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            let lastSyncTime = localStorage.getItem('lastSyncTime') || null;
+            let offlineQueue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
+
+            // ===== نظام الإشعارات =====
+            function showToast(message, type = 'info') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `
+                    <span>${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}</span>
+                    <span>${message}</span>
+                `;
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.animation = 'slideOut 0.3s forwards';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3500);
+            }
+
+            // ===== إنشاء شريط التنقل العلوي =====
+            function createNavBar(title, showHome = true, showBack = false, backFunction = null) {
+                let buttons = '';
+                
+                if (showBack) {
+                    buttons += `<button class="nav-btn" onclick="${backFunction}">🔙 رجوع</button>`;
+                }
+                
+                if (showHome) {
+                    buttons += `<button class="nav-btn home-btn" onclick="homePage()">🏠 الرئيسية</button>`;
+                }
+                
+                return `
+                    <div class="nav-bar">
+                        <div class="nav-title">${title}</div>
+                        <div class="nav-buttons">
+                            ${buttons}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ===== دالة جلب إحصائيات الداش بورد =====
+            async function fetchDashboardStats() {
+                try {
+                    const response = await fetch(API_URL);
+                    const data = await response.json();
+                    
+                    dashboardStats = {
+                        total: data.length,
+                        step1: data.filter(d => d["Current Step"] === "Step 1").length,
+                        step2: data.filter(d => d["Current Step"] === "Step 2").length,
+                        completed: data.filter(d => d["Current Step"] === "Completed").length
+                    };
+                    
+                    devices = data;
+                    originalDevices = [...data];
+                    lastSyncTime = new Date().toISOString();
+                    localStorage.setItem('lastSyncTime', lastSyncTime);
+                    
+                    updateDashboardDisplay();
+                    
+                    // معالجة قائمة الانتظار
+                    processOfflineQueue();
+                    
+                } catch (error) {
+                    console.error("خطأ في جلب الإحصائيات:", error);
+                    showToast("حدث خطأ في تحميل الإحصائيات", "error");
+                    
+                    if (devices.length === 0) {
+                        dashboardStats = { total: 0, step1: 0, step2: 0, completed: 0 };
+                    }
+                    
+                    updateDashboardDisplay();
+                }
+            }
+
+            // ===== معالجة العمليات دون اتصال =====
+            async function processOfflineQueue() {
+                if (offlineQueue.length === 0) return;
+                
+                for (let i = offlineQueue.length - 1; i >= 0; i--) {
+                    const item = offlineQueue[i];
+                    try {
+                        await fetch(API_URL, {
+                            method: "POST",
+                            body: JSON.stringify(item.data)
+                        });
+                        offlineQueue.splice(i, 1);
+                    } catch (error) {
+                        console.log('فشل مزامنة العملية');
+                    }
+                }
+                
+                localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
+                if (offlineQueue.length === 0) {
+                    showToast('تمت مزامنة البيانات', 'success');
+                }
+            }
+
+            // ===== دالة تحديث عرض الداش بورد =====
+            function updateDashboardDisplay() {
+                const dashboardElement = document.getElementById('dashboardStats');
+                if (!dashboardElement) return;
+                
+                // حساب الإيرادات
+                const revenue = devices.reduce((sum, d) => sum + (parseFloat(d["Final Price"]) || 0), 0);
+                
+                dashboardElement.innerHTML = `
+                    <div class="stat-card">
+                        <div class="icon">📊</div>
+                        <div class="value">${dashboardStats.total}</div>
+                        <div class="label">إجمالي الأجهزة</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon">📥</div>
+                        <div class="value">${dashboardStats.step1}</div>
+                        <div class="label">قيد الاستلام</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon">🔧</div>
+                        <div class="value">${dashboardStats.step2}</div>
+                        <div class="label">تحت الصيانة</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon">✅</div>
+                        <div class="value">${dashboardStats.completed}</div>
+                        <div class="label">مكتملة</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon">💰</div>
+                        <div class="value">${revenue.toFixed(0)}</div>
+                        <div class="label"> الإيرادات التقريبية</div>
+                    </div>
+                `;
+            }
+
+            // ===== تصنيف المشكلة =====
+            function classifyProblem(problemText = '') {
+                if (!problemText) return 'أخرى';
+                const text = problemText.toLowerCase();
+                if (text.includes('بطارية') || text.includes('battery') || text.includes('شاحن')) return 'بطارية';
+                if (text.includes('شاشة') || text.includes('screen') || text.includes('تاتش')) return 'شاشة';
+                if (text.includes('باور') || text.includes('power') || text.includes('لا يعمل')) return 'باور';
+                if (text.includes('سوفت') || text.includes('software') || text.includes('تحديث')) return 'سوفت وير';
+                if (text.includes('بوردة') || text.includes('motherboard')) return 'بوردة';
+                return 'أخرى';
+            }
+
+            // ===== حساب متوسط السعر للتصنيف =====
+            function getAveragePriceForCategory(category) {
+                const devicesWithCat = devices.filter(d => 
+                    classifyProblem(d["Problem"]) === category && 
+                    d["Final Price"] && 
+                    !isNaN(parseFloat(d["Final Price"]))
+                );
+                if (devicesWithCat.length === 0) return 0;
+                const sum = devicesWithCat.reduce((acc, d) => acc + (parseFloat(d["Final Price"]) || 0), 0);
+                return sum / devicesWithCat.length;
+            }
+
+            // ===== توليد التنبيهات الذكية =====
+            function generateAlerts() {
+                const alerts = [];
+                
+                devices.forEach(d => {
+                    if (d["Current Step"] === "Step 2") {
+                        alerts.push({ 
+                            type: 'warning', 
+                            msg: `⚠️ جهاز ${d["Device Name"] || 'غير معروف'} في الخطوة الثانية` 
+                        });
+                    }
+                    
+                    const initial = parseFloat(d["Service Price"]) || 0;
+                    const final = parseFloat(d["Final Price"]) || 0;
+                    
+                    if (d["Current Step"] === "Completed" && final < initial && final > 0) {
+                        alerts.push({ 
+                            type: 'error', 
+                            msg: `💰 جهاز ${d["Device Name"]} السعر النهائي أقل من المبدئي` 
+                        });
+                    }
+                    
+                    if (d["Current Step"] === "Completed" && (!d["Final Price"] || parseFloat(d["Final Price"]) === 0)) {
+                        alerts.push({ 
+                            type: 'warning', 
+                            msg: `❌ جهاز ${d["Device Name"]} مكتمل بدون سعر نهائي` 
+                        });
+                    }
+                });
+
+                return alerts.slice(0, 5);
+            }
+
+            // ===== تحليل أداء الفنيين =====
+            function analyzeTechPerformance() {
+                const techMap = new Map();
+
+                devices.forEach(d => {
+                    const techs = [
+                        d["First Technician"], 
+                        d["Repair Technician"], 
+                        d["Last Technician"]
+                    ].filter(t => t && t.trim() !== '');
+                    
+                    techs.forEach(tech => {
+                        if (!techMap.has(tech)) {
+                            techMap.set(tech, { count: 0, repaired: 0, totalPrice: 0 });
+                        }
+                        const stat = techMap.get(tech);
+                        stat.count++;
+                        if (d["Repaired Status"] === "تم اصلاحه") stat.repaired++;
+                        if (d["Final Price"] && !isNaN(parseFloat(d["Final Price"]))) {
+                            stat.totalPrice += parseFloat(d["Final Price"]);
+                        }
+                    });
+                });
+
+                return Array.from(techMap.entries()).map(([name, s]) => ({
+                    name,
+                    count: s.count,
+                    repairRate: s.count ? (s.repaired / s.count * 100).toFixed(1) : 0,
+                    avgPrice: s.count ? (s.totalPrice / s.count).toFixed(0) : 0
+                })).sort((a,b) => b.repairRate - a.repairRate);
+            }
+
+            // ===== رسم التحليلات =====
+            function renderSmartAnalytics() {
+                // تنظيف المخططات القديمة
+                if (charts.problem) charts.problem.destroy();
+                if (charts.step) charts.step.destroy();
+
+                // تصنيف المشكلات
+                const categories = ['سوفت وير', 'هاردوير', 'أخرى'];
+                const counts = categories.map(cat => 
+                    devices.filter(d => classifyProblem(d["Problem"]) === cat).length
+                );
+
+                const problemCtx = document.getElementById('problemChart')?.getContext('2d');
+                if (problemCtx) {
+                    charts.problem = new Chart(problemCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: categories,
+                            datasets: [{
+                                data: counts,
+                                backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#6b7280']
+                            }]
+                        },
+                        options: { 
+                            plugins: { 
+                                legend: { labels: { color: '#e5e7eb' } } 
+                            },
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+                }
+
+                // توزيع الحالات
+                const stepCtx = document.getElementById('stepChart')?.getContext('2d');
+                if (stepCtx) {
+                    charts.step = new Chart(stepCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['الخطوة 1', 'الخطوة 2', 'مكتمل'],
+                            datasets: [{
+                                data: [dashboardStats.step1, dashboardStats.step2, dashboardStats.completed],
+                                backgroundColor: '#3b82f6'
+                            }]
+                        },
+                        options: { 
+                            plugins: { legend: { display: false } }, 
+                            scales: { 
+                                y: { 
+                                    beginAtZero: true, 
+                                    grid: { color: '#2d3a4f' },
+                                    ticks: { color: '#e5e7eb' }
+                                },
+                                x: { ticks: { color: '#e5e7eb' } }
+                            },
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+                }
+
+                // إحصائيات سريعة
+                const mostFrequentDevice = (() => {
+                    const freq = {};
+                    devices.forEach(d => { 
+                        const n = d["Device Name"]; 
+                        if(n) freq[n] = (freq[n] || 0) + 1; 
+                    });
+                    return Object.entries(freq).sort((a,b) => b[1] - a[1])[0]?.[0] || 'لا يوجد';
+                })();
+
+                const avgFinalPrice = devices.length ? 
+                    (devices.reduce((acc, d) => acc + (parseFloat(d["Final Price"]) || 0), 0) / devices.length).toFixed(0) : 0;
+
+                document.getElementById('quickStats').innerHTML = `
+                    <div class="stat-row"><span>📱 أكثر جهاز:</span> <strong>${mostFrequentDevice}</strong></div>
+                    <div class="stat-row"><span>💰 متوسط السعر:</span> <strong>${avgFinalPrice} ج</strong></div>
+                    <div class="stat-row"><span>📅 آخر مزامنة:</span> <strong>${lastSyncTime ? new Date(lastSyncTime).toLocaleTimeString('ar-EG') : 'لم تتم'}</strong></div>
+                `;
+
+                // التنبيهات
+                const alerts = generateAlerts();
+                const alertsHtml = alerts.map(a => 
+                    `<div class="alert-badge ${a.type}">${a.msg}</div>`
+                ).join('');
+                
+                document.getElementById('alertsContainer').innerHTML = alertsHtml || 
+                    '<div class="alert-badge info">✅ لا توجد تنبيهات</div>';
+
+                // أداء الفنيين
+                const techs = analyzeTechPerformance().slice(0, 5);
+                const techHtml = techs.map((t, idx) => `
+                    <div class="tech-rank">
+                        <span class="rank">#${idx+1}</span>
+                        <span style="flex:1;">${t.name}</span>
+                        <span style="color:#10b981;">${t.repairRate}%</span>
+                        <span style="color:#94a3b8;">💰${t.avgPrice}</span>
+                    </div>
+                `).join('');
+                
+                document.getElementById('techPerformance').innerHTML = techHtml || '<p>لا يوجد فنيين</p>';
+            }
+
+            // ===== عرض الأجهزة السريعة =====
+            function renderQuickDevices() {
+                const container = document.getElementById('quickDevices');
+                if (!container) return;
+                
+                const recentDevices = devices
+                    .filter(d => d["Current Step"] === "Step 1" || d["Current Step"] === "Step 2")
+                    .slice(0, 5);
+                
+                container.innerHTML = recentDevices.map((device, idx) => {
+                    const step = device["Current Step"];
+                    let badgeClass = 'step1';
+                    let stepName = "📥 استلام";
+                    
+                    if (step === "Step 2") {
+                        stepName = "🔧 صيانة";
+                        badgeClass = 'step2';
+                    } else if (step === "Completed") {
+                        stepName = "✅ مكتمل";
+                        badgeClass = 'completed';
+                    }
+                    
+                    const deviceIndex = devices.indexOf(device);
+                    
+                    return `
+                        <div class="device-item" onclick="details(${deviceIndex})" style="cursor: pointer;">
+                            <div style="display:flex; align-items:center; gap:1rem;">
+                                <span style="font-weight:700;">${device["Device Name"] || "جهاز"}</span>
+                                <span class="badge ${badgeClass}">${stepName}</span>
+                            </div>
+                            <div style="color: var(--text-secondary);">
+                                ${device["Customer Name"] || "عميل"} 
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // ===== الصفحة الرئيسية مع التحليلات =====
+            window.homePage = function() {
+                const app = document.getElementById('app');
+                
+                app.innerHTML = `
+                    ${createNavBar('الصفحة الرئيسية - مركز تورنيدو', false, false)}
+                    <div class="container" style="padding-top:1rem;">
+                        <!-- داش بورد -->
+                        <div id="dashboardStats" class="stats-grid">
+                            <div class="loading-stat-card">
+                                <div class="loading-spinner"></div>
+                                <div class="loading-text">جاري التحميل...</div>
+                            </div>
+                            <div class="loading-stat-card">
+                                <div class="loading-spinner"></div>
+                                <div class="loading-text">جاري التحميل...</div>
+                            </div>
+                            <div class="loading-stat-card">
+                                <div class="loading-spinner"></div>
+                                <div class="loading-text">جاري التحميل...</div>
+                            </div>
+                            <div class="loading-stat-card">
+                                <div class="loading-spinner"></div>
+                                <div class="loading-text">جاري التحميل...</div>
+                            </div>
+                            <div class="loading-stat-card">
+                                <div class="loading-spinner"></div>
+                                <div class="loading-text">جاري التحميل...</div>
+                            </div>
+                        </div>
+                        
+                        <!-- أزرار سريعة -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 2rem 0;">
+                            <button class="btn" style="padding: 1.2rem;" onclick="step1Page()">➕ إضافة جهاز</button>
+                            <button class="btn secondary" style="padding: 1.2rem;" onclick="loadDevices()">📋 عرض الأجهزة</button>
+                            <button class="btn-success" style="padding: 1.2rem;" onclick="showReports()">📊 تقارير</button>
+                            <button class="btn-warning" style="padding: 1.2rem;" onclick="syncData()">🔄 مزامنة</button>
+                        </div>
+                        
+                        <!-- التحليلات الذكية -->
+                        <div id="smartAnalyticsLayer" style="display: none;">
+                            <h2>تفاصيل</h2>
+                            <div class="analytics-grid">
+                                <div class="analytics-card">
+                                    <h4> تصنيف المشكلات</h4>
+                                    <div class="mini-chart-container"><canvas id="problemChart"></canvas></div>
+                                </div>
+                                <div class="analytics-card">
+                                    <h4> توزيع الحالات</h4>
+                                    <div class="mini-chart-container"><canvas id="stepChart"></canvas></div>
+                                </div>
+                                <div class="analytics-card">
+                                    <h4> أداء الفنيين</h4>
+                                    <div id="techPerformance"></div>
+                                </div>
+                                
+                                    
+                                    <div id="quickStats"></div>
+                                </div>
+                                <div class="analytics-card">
+                                    <h4>⚠️ تنبيهات</h4>
+                                    <div id="alertsContainer"></div>
+                                </div>
+                            </div>
+                            
+                            <h2 style="margin-top: 2rem;"> أجهزة في الانتظار</h2>
+                            <div id="quickDevices" class="device-grid"></div>
+                        </div>
+                    </div>
+                `;
+
+                // جلب البيانات
+                fetchDashboardStats().then(() => {
+                    if (devices.length > 0) {
+                        document.getElementById('smartAnalyticsLayer').style.display = 'block';
+                        renderSmartAnalytics();
+                        renderQuickDevices();
+                    }
+                });
+            };
+
+            // ===== مزامنة البيانات =====
+            window.syncData = function() {
+                showToast('جاري المزامنة...', 'info');
+                fetchDashboardStats().then(() => {
+                    showToast('تمت المزامنة بنجاح', 'success');
+                });
+            };
+
+            // ===== عرض التقارير =====
+            window.showReports = function() {
+                const app = document.getElementById('app');
+                
+                const totalRevenue = devices.reduce((sum, d) => sum + (parseFloat(d["Final Price"]) || 0), 0);
+                const completedCount = dashboardStats.completed;
+                const completionRate = devices.length ? ((completedCount / devices.length) * 100).toFixed(1) : 0;
+                
+                app.innerHTML = `
+                    ${createNavBar('التقارير', true, true, 'homePage()')}
+                    <div class="container">
+                        <div class="card">
+                            <h3>📊 ملخص الأداء</h3>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+                                <div style="text-align: center; background: var(--surface-soft); padding: 1.5rem; border-radius: 1.5rem;">
+                                    <div style="font-size: 2.5rem; color: var(--primary);">${devices.length}</div>
+                                    <div>إجمالي الأجهزة</div>
+                                </div>
+                                <div style="text-align: center; background: var(--surface-soft); padding: 1.5rem; border-radius: 1.5rem;">
+                                    <div style="font-size: 2.5rem; color: var(--success);">${completedCount}</div>
+                                    <div>الأجهزة المكتملة</div>
+                                </div>
+                                <div style="text-align: center; background: var(--surface-soft); padding: 1.5rem; border-radius: 1.5rem;">
+                                    <div style="font-size: 2.5rem; color: var(--warning);">${totalRevenue.toFixed(0)}</div>
+                                    <div> الإيرادات التقريبية</div>
+                                </div>
+                                <div style="text-align: center; background: var(--surface-soft); padding: 1.5rem; border-radius: 1.5rem;">
+                                    <div style="font-size: 2.5rem; color: var(--accent);">${completionRate}%</div>
+                                    <div>نسبة الإنجاز</div>
+                                </div>
+                            </div>
+                            
+                            <button class="btn" onclick="exportData()" style="width: 100%;">📥 تصدير البيانات</button>
+                        </div>
+                    </div>
+                `;
+            };
+
+            // ===== تصدير البيانات =====
+            window.exportData = function() {
+                const dataStr = JSON.stringify(devices, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `tornado_backup_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('تم تصدير البيانات', 'success');
+            };
+
+            // ===== صفحة الخطوة الأولى =====
+            window.step1Page = function() {
+                const app = document.getElementById('app');
+                app.innerHTML = `
+                    ${createNavBar('استلام جهاز جديد', true, true, 'homePage()')}
+                    <div class="container">
+                        <div class="card">
+                            <h3>معلومات الجهاز والعميل</h3>
+                            <input type="text" id="deviceName" placeholder="اسم الجهاز (مثال: iPhone 12)">
+                            <input type="text" id="problem" placeholder="مشكلة الجهاز">
+                            <input type="text" id="customerName" placeholder="اسم العميل">
+                            <input type="text" id="customerPhone" placeholder="رقم هاتف العميل">
+                            <input type="text" id="receiverName" placeholder="اسم الموظف المستلم">
+                            <input type="text" id="firstTech" placeholder="اسم الفني المسؤول">
+                            <input type="text" id="servicePrice" placeholder="سعر الخدمة المبدئي">
+                            
+                            <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+                                <button onclick="saveStep1()" class="btn" style="flex: 2;">💾 حفظ البيانات</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+
+            // حفظ الخطوة الأولى
+            window.saveStep1 = async function() {
+                const data = {
+                    action: "step1",
+                    deviceName: document.getElementById("deviceName").value,
+                    problem: document.getElementById("problem").value,
+                    customerName: document.getElementById("customerName").value,
+                    customerPhone: document.getElementById("customerPhone").value,
+                    receiverName: document.getElementById("receiverName").value,
+                    firstTech: document.getElementById("firstTech").value,
+                    servicePrice: document.getElementById("servicePrice").value
+                };
+                
+                if (!data.deviceName || !data.customerName) {
+                    showToast("يرجى إدخال اسم الجهاز والعميل", "error");
+                    return;
+                }
+                
+                try {
+                    await fetch(API_URL, {
+                        method: "POST",
+                        body: JSON.stringify(data)
+                    });
+                    showToast("تم تسجيل الجهاز بنجاح", "success");
+                    homePage();
+                } catch (error) {
+                    // حفظ في قائمة الانتظار
+                    offlineQueue.push({ data, timestamp: Date.now() });
+                    localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
+                    showToast("تم الحفظ محلياً (مزامنة لاحقاً)", "warning");
+                    
+                    // إضافة للقائمة المحلية
+                    devices.push({
+                        "Device Code": `OFFLINE_${Date.now()}`,
+                        "Device Name": data.deviceName,
+                        "Problem": data.problem,
+                        "Customer Name": data.customerName,
+                        "Current Step": "Step 1"
+                    });
+                    
+                    homePage();
+                }
+            };
+
+            // ===== تحميل وعرض الأجهزة =====
+            window.loadDevices = async function() {
+                const app = document.getElementById('app');
+                app.innerHTML = `
+                    ${createNavBar('جاري التحميل...', true, true, 'homePage()')}
+                    <div class="container">
+                        <div class="text-center" style="padding: 40px;">
+                            <p>جاري تحميل البيانات...</p>
+                        </div>
+                    </div>
+                `;
+                
+                try {
+                    await fetchDashboardStats();
+                    displayDevicesList();
+                    showToast(`تم تحميل ${devices.length} جهاز`, 'success');
+                } catch (error) {
+                    displayDevicesList(); // عرض البيانات المحلية
+                    showToast("تم التحميل من البيانات المحلية", "warning");
+                }
+            };
+
+            // عرض قائمة الأجهزة
+            function displayDevicesList() {
+                const step1Devices = devices.filter(d => d["Current Step"] === "Step 1");
+                const step2Devices = devices.filter(d => d["Current Step"] === "Step 2");
+                const completedDevices = devices.filter(d => d["Current Step"] === "Completed");
+                const total = devices.length;
+
+                let html = `
+                    ${createNavBar(`قائمة الأجهزة (${total})`, true, true, 'homePage()')}
+                    <div class="container">
+                        <!-- شريط البحث -->
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="بحث شامل في جميع الأجهزة..." onkeyup="filterDevices()">
+                        </div>
+                        
+                        <!-- أزرار التبويب -->
+                        <div class="tabs">
+                            <button class="tab-btn active" onclick="showSection('all')" id="tab-all">الكل (${total})</button>
+                            <button class="tab-btn" onclick="showSection('step1')" id="tab-step1">الخطوة الأولى (${step1Devices.length})</button>
+                            <button class="tab-btn" onclick="showSection('step2')" id="tab-step2">الخطوة الثانية (${step2Devices.length})</button>
+                            <button class="tab-btn" onclick="showSection('completed')" id="tab-completed">مكتمل (${completedDevices.length})</button>
+                        </div>
+                        
+                        <div id="devicesContainer" class="device-grid">
+                `;
+
+                if (total === 0) {
+                    html += `
+                        <div class="card" style="text-align: center;">
+                            <p style="color: #94a3b8;">لا توجد أجهزة مسجلة</p>
+                            <button onclick="step1Page()" class="btn" style="margin-top: 15px;">➕ إضافة أول جهاز</button>
+                        </div>
+                    `;
+                } else {
+                    // أجهزة الخطوة الأولى
+                    html += `<div id="section-step1" class="device-section">`;
+                    if (step1Devices.length > 0) {
+                        html += `<div class="section-title">📥 الخطوة الأولى (${step1Devices.length})</div>`;
+                        step1Devices.forEach((device) => {
+                            const originalIndex = devices.findIndex(d => d["Device Code"] === device["Device Code"]);
+                            html += generateDeviceItem(device, originalIndex);
+                        });
+                    }
+                    html += `</div>`;
+                    
+                    // أجهزة الخطوة الثانية
+                    html += `<div id="section-step2" class="device-section">`;
+                    if (step2Devices.length > 0) {
+                        html += `<div class="section-title">🔧 الخطوة الثانية (${step2Devices.length})</div>`;
+                        step2Devices.forEach((device) => {
+                            const originalIndex = devices.findIndex(d => d["Device Code"] === device["Device Code"]);
+                            html += generateDeviceItem(device, originalIndex);
+                        });
+                    }
+                    html += `</div>`;
+                    
+                    // الأجهزة المكتملة
+                    html += `<div id="section-completed" class="device-section">`;
+                    if (completedDevices.length > 0) {
+                        html += `<div class="section-title">✅ مكتمل (${completedDevices.length})</div>`;
+                        completedDevices.forEach((device) => {
+                            const originalIndex = devices.findIndex(d => d["Device Code"] === device["Device Code"]);
+                            html += generateDeviceItem(device, originalIndex);
+                        });
+                    }
+                    html += `</div>`;
+                }
+
+                html += `</div></div>`;
+                document.getElementById("app").innerHTML = html;
+
+                if (total > 0) {
+                    window.showSection('all');
+                }
+            }
+
+            // دالة توليد عنصر جهاز
+            function generateDeviceItem(device, index) {
+                const step = device["Current Step"];
+                let badgeClass = 'step1';
+                let stepName = "📥 استلام";
+                
+                if (step === "Step 2") {
+                    stepName = "🔧 صيانة";
+                    badgeClass = 'step2';
+                } else if (step === "Completed") {
+                    stepName = "✅ مكتمل";
+                    badgeClass = 'completed';
+                }
+                
+                const isFavorite = favorites.includes(device["Device Code"]);
+                
+                return `
+                    <div class="device-item device-row" data-index="${index}" data-deviceid="${device["Device Code"] || ''}">
+                        <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+                            <span style="font-weight:700; font-size:1.2rem;">${device["Device Name"] || "جهاز"}</span>
+                            <span class="badge ${badgeClass}">${stepName}</span>
+                            <span class="badge">💰 ${device["Final Price"] ? device["Final Price"] + ' ج' : '—'}</span>
+                        </div>
+                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                            <button class="btn secondary" onclick="details(${index})">🔍 التفاصيل</button>
+                            <button class="btn secondary" onclick="historyPage(${index})">📜 السجل</button>
+                            <button class="btn ${isFavorite ? 'btn-success' : 'secondary'}" onclick="toggleFavorite('${device["Device Code"]}', ${index})">
+                                ${isFavorite ? '★' : '☆'}
+                            </button>
+                            <button class="btn btn-danger" onclick="promptDelete('${device["Device Code"]}', ${index})">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // تبديل المفضلة
+            window.toggleFavorite = function(code, index) {
+                if (favorites.includes(code)) {
+                    favorites = favorites.filter(c => c !== code);
+                    showToast('تمت الإزالة من المفضلة', 'info');
+                } else {
+                    favorites.push(code);
+                    showToast('تمت الإضافة للمفضلة', 'success');
+                }
+                localStorage.setItem('favorites', JSON.stringify(favorites));
+                displayDevicesList(); // إعادة التحميل
+            };
+
+            // دالة إظهار قسم معين
+            window.showSection = function(section) {
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                const activeTab = document.getElementById(`tab-${section}`);
+                if (activeTab) activeTab.classList.add('active');
+                
+                const sections = document.querySelectorAll('.device-section');
+                sections.forEach(sec => sec.style.display = 'none');
+                
+                if (section === 'all') {
+                    sections.forEach(sec => sec.style.display = 'block');
+                } else {
+                    const selectedSection = document.getElementById(`section-${section}`);
+                    if (selectedSection) selectedSection.style.display = 'block';
+                }
+            };
+
+            // دالة البحث الشامل
+            window.filterDevices = function() {
+                const query = document.getElementById("searchInput").value.trim().toLowerCase();
+                const rows = document.querySelectorAll('.device-row');
+                let visibleCount = 0;
+                
+                rows.forEach(row => {
+                    const index = row.getAttribute('data-index');
+                    const device = devices[index];
+                    if (!device) return;
+                    
+                    const searchableText = Object.values(device).join(' ').toLowerCase();
+                    if (searchableText.includes(query) || query === '') {
+                        row.style.display = 'flex';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                
+                const navTitle = document.querySelector('.nav-title');
+                if(navTitle) navTitle.innerText = `قائمة الأجهزة (${visibleCount} من ${devices.length})`;
+            };
+
+            // دالة طلب كلمة المرور قبل الحذف
+            window.promptDelete = function(code, index) {
+                const pwd = prompt("🔐 أدخل كلمة المرور الخاصة بالحذف:");
+                if (pwd === "t1281") {
+                    if (confirm("⚠️ هل أنت متأكد؟ سيتم حذف الجهاز نهائياً")) {
+                        deleteDevice(code, index);
+                    }
+                } else {
+                    showToast("كلمة مرور خاطئة", "error");
+                }
+            };
+
+            // دالة الحذف الحقيقية عبر API
+            async function deleteDevice(code, index) {
+                try {
+                    const response = await fetch(API_URL, {
+                        method: "POST",
+                        body: JSON.stringify({
+                            action: "delete",
+                            deviceCode: code
+                        })
+                    });
+                    
+                    let result;
+                    try {
+                        result = await response.json();
+                    } catch (e) {
+                        result = { success: true };
+                    }
+                    
+                    if (result.success) {
+                        showToast("تم حذف الجهاز بنجاح", "success");
+                        await fetchDashboardStats(); // إعادة تحميل البيانات
+                        displayDevicesList(); // تحديث الواجهة
+                    }
+                } catch (error) {
+                    showToast("فشل الاتصال بالخادم", "error");
+                }
+            }
+
+            // ===== صفحة التفاصيل =====
+            window.details = function(index) {
+                const device = devices[index];
+                const currentStep = device["Current Step"];
+                
+                const problemCategory = classifyProblem(device["Problem"]);
+                const avgPriceForCat = getAveragePriceForCategory(problemCategory);
+                const currentFinal = parseFloat(device["Final Price"]) || 0;
+                
+                let html = `
+                    ${createNavBar(`تفاصيل: ${device["Device Name"] || "جهاز"}`, true, true, 'loadDevices()')}
+                    <div class="container">
+                        <div class="card">
+                            <h3>${device["Device Name"] || "جهاز"}</h3>
+                            <div class="detail-value"><strong>كود الجهاز:</strong> ${device["Device Code"] || "—"}</div>
+                            <div class="detail-value"><strong>الحالة:</strong> ${currentStep === "Step 1" ? "📥 الخطوة الأولى" : currentStep === "Step 2" ? "🔧 الخطوة الثانية" : "✅ مكتمل"}</div>
+                `;
+                
+                // صندوق الملخص الذكي
+                html += `
+                    <div class="summary-box">
+                        <h4 style="margin-top:0; color:#60a5fa;">🧠 ملخص ذكي</h4>
+                        <div class="stat-row"><span>تصنيف المشكلة:</span> <strong>${problemCategory}</strong></div>
+                        <div class="stat-row"><span>متوسط سعر (${problemCategory}):</span> <strong>${avgPriceForCat.toFixed(0)} ج</strong></div>
+                        <div class="stat-row"><span>السعر الحالي:</span> <strong>${currentFinal || 'غير محدد'} ج</strong></div>
+                    </div>
+                `;
+                
+                if (currentStep === "Step 1") {
+                    html += `
+                        <hr>
+                        <h4>🔧 الانتقال للخطوة الثانية</h4>
+                        <input type="text" id="repairTech" placeholder="اسم الفني">
+                        <textarea id="repairDetails" placeholder="تفاصيل العمل"></textarea>
+                        <select id="workedBefore">
+                            <option value="No">مش هشتغل في الجهاز</option>
+                            <option value="Yes">هشتغل في الجهاز</option>
+                        </select>
+                        <button onclick="saveStep2('${device["Device Code"]}')" class="btn" style="width: 100%; margin-top: 15px;">💾 حفظ ونقل</button>
+                    `;
+                }
+                else if (currentStep === "Step 2") {
+                    html += `
+                        <hr>
+                        <h4>📦 الخطوة الثالثة (تسليم)</h4>
+                        <input type="text" id="lastTech" placeholder="آخر فني اشتغل">
+                        <select id="repairedStatus">
+                            <option value="تم اصلاحه">تم اصلاحه</option>
+                            <option value="مرفوض">مرفوض</option>
+                        </select>
+                        <textarea id="afterNotes" placeholder="ملاحظات بعد الصيانة"></textarea>
+                        <input type="text" id="finalPrice" placeholder="السعر النهائي">
+                        <input type="text" id="deliveredBy" placeholder="اسم المسلِّم">
+                        <button onclick="saveStep3('${device["Device Code"]}')" class="btn" style="width: 100%; margin-top: 15px;">✅ إنهاء وتسليم</button>
+                    `;
+                }
+                else {
+                    html += `
+                        <hr>
+                        <div style="background: #05966920; padding: 20px; border-radius: 8px; text-align: center;">
+                            <p style="color: #34d399; font-size: 18px;">✅ تم تسليم الجهاز</p>
+                        </div>
+                    `;
+                }
+                
+                html += `
+                    <hr>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="historyPage(${index})" class="btn" style="flex: 1;">📜 عرض السجل</button>
+                    </div>
+                    </div></div>
+                `;
+                
+                document.getElementById("app").innerHTML = html;
+            };
+
+            // حفظ الخطوة الثانية
+            window.saveStep2 = async function(code) {
+                const data = {
+                    action: "step2",
+                    code: code,
+                    repairTech: document.getElementById("repairTech")?.value,
+                    repairDetails: document.getElementById("repairDetails")?.value,
+                    workedBefore: document.getElementById("workedBefore")?.value
+                };
+                
+                try {
+                    await fetch(API_URL, {
+                        method: "POST",
+                        body: JSON.stringify(data)
+                    });
+                    showToast("تم نقل الجهاز للخطوة الثانية", "success");
+                    loadDevices();
+                } catch (error) {
+                    offlineQueue.push({ data, timestamp: Date.now() });
+                    localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
+                    showToast("تم الحفظ محلياً", "warning");
+                    loadDevices();
+                }
+            };
+
+            // حفظ الخطوة الثالثة
+            window.saveStep3 = async function(code) {
+                const data = {
+                    action: "step3",
+                    code: code,
+                    lastTech: document.getElementById("lastTech")?.value,
+                    repairedStatus: document.getElementById("repairedStatus")?.value,
+                    afterNotes: document.getElementById("afterNotes")?.value,
+                    finalPrice: document.getElementById("finalPrice")?.value,
+                    deliveryStatus: "Completed",
+                    deliveredBy: document.getElementById("deliveredBy")?.value
+                };
+                
+                try {
+                    await fetch(API_URL, {
+                        method: "POST",
+                        body: JSON.stringify(data)
+                    });
+                    showToast("تم إنهاء الجهاز", "success");
+                    loadDevices();
+                } catch (error) {
+                    offlineQueue.push({ data, timestamp: Date.now() });
+                    localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
+                    showToast("تم الحفظ محلياً", "warning");
+                    loadDevices();
+                }
+            };
+
+            // ===== صفحة السجل =====
+            window.historyPage = function(index) {
+                const d = devices[index];
+                
+                let html = `
+                    ${createNavBar(`سجل: ${d["Device Name"] || "جهاز"}`, true, true, `details(${index})`)}
+                    <div class="container">
+                        <div class="card">
+                            <h3 style="color: #60a5fa;">${d["Device Name"] || "جهاز"}</h3>
+                            
+                            <h4>🟢 الخطوة الأولى - استلام</h4>
+                            <div class="detail-value"><strong>كود الجهاز:</strong> ${d["Device Code"] || "—"}</div>
+                            <div class="detail-value"><strong>العميل:</strong> ${d["Customer Name"] || "—"}</div>
+                            <div class="detail-value"><strong>رقم الهاتف:</strong> ${d["Customer Phone"] || "—"}</div>
+                            <div class="detail-value"><strong>المشكلة:</strong> ${d["Problem"] || "—"}</div>
+                            <div class="detail-value"><strong>الفني الأول:</strong> ${d["First Technician"] || "—"}</div>
+                            <div class="detail-value"><strong>السعر المبدئي:</strong> ${d["Service Price"] || "—"}</div>
+                `;
+                
+                if (d["Repair Technician"]) {
+                    html += `
+                        <hr>
+                        <h4>🔵 الخطوة الثانية - صيانة</h4>
+                        <div class="detail-value"><strong>فني الصيانة:</strong> ${d["Repair Technician"]}</div>
+                        <div class="detail-value"><strong>تفاصيل:</strong> ${d["Repair Details"] || "—"}</div>
+                        <div class="detail-value"><strong>بدأ شغل فيه بنفسه ؟:</strong> ${d["Worked Before"] === "Yes" ? "نعم" : "لا"}</div>
+                    `;
+                }
+                
+                if (d["Last Technician"]) {
+                    html += `
+                        <hr>
+                        <h4>🟣 الخطوة الثالثة - تسليم</h4>
+                        <div class="detail-value"><strong>آخر فني:</strong> ${d["Last Technician"]}</div>
+                        <div class="detail-value"><strong>حالة الإصلاح:</strong> ${d["Repaired Status"] || "—"}</div>
+                        <div class="detail-value"><strong>ملاحظات:</strong> ${d["After Repair Notes"] || "—"}</div>
+                        <div class="detail-value"><strong>السعر النهائي:</strong> ${d["Final Price"] || "—"}</div>
+                        <div class="detail-value"><strong>مسلّم بواسطة:</strong> ${d["Delivered By"] || "—"}</div>
+                    `;
+                }
+                
+                html += `
+                    </div></div>
+                `;
+                
+                document.getElementById("app").innerHTML = html;
+            };
+
+            // ===== نظام تحويل الصوت إلى نص =====
+            (function() {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const isSupported = !!SpeechRecognition;
+                
+                function addVoiceButtons() {
+                    if (!isSupported) return;
+                    
+                    document.querySelectorAll('input[type="text"]:not(#searchInput):not(#pass), textarea').forEach(input => {
+                        if (input.dataset.voiceAdded) return;
+                        if (input.id === 'searchInput' || input.type === 'password') return;
+                        
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.textContent = '🎤';
+                        btn.className = 'btn secondary';
+                        btn.style.padding = '0.5rem 1rem';
+                        btn.style.margin = '0.25rem 0';
+                        btn.style.fontSize = '0.9rem';
+                        
+                        let recognition, isListening = false;
+                        
+                        btn.onclick = (e) => {
+                            e.preventDefault();
+                            
+                            if (isListening) {
+                                recognition?.stop();
+                                return;
+                            }
+                            
+                            try {
+                                recognition = new SpeechRecognition();
+                                recognition.lang = 'ar-EG';
+                                recognition.interimResults = false;
+                                
+                                recognition.onstart = () => {
+                                    isListening = true;
+                                    btn.textContent = '🔴';
+                                    btn.style.background = '#b91c1c';
+                                };
+                                
+                                recognition.onresult = (e) => {
+                                    const text = e.results[0][0].transcript;
+                                    input.value = input.value + ' ' + text;
+                                };
+                                
+                                recognition.onend = () => {
+                                    isListening = false;
+                                    btn.textContent = '🎤';
+                                    btn.style.background = '';
+                                };
+                                
+                                recognition.start();
+                            } catch {
+                                alert('تعذر الوصول إلى الميكروفون');
+                            }
+                        };
+                        
+                        input.parentNode?.insertBefore(btn, input.nextSibling);
+                        input.dataset.voiceAdded = 'true';
+                    });
+                }
+                
+                const observer = new MutationObserver(() => setTimeout(addVoiceButtons, 300));
+                window.addEventListener('load', () => {
+                    addVoiceButtons();
+                    observer.observe(document.body, { childList: true, subtree: true });
+                });
+            })();
+
+            // تحميل البيانات المخزنة
+            const savedDevices = localStorage.getItem('devices');
+            if (savedDevices) {
+                try {
+                    devices = JSON.parse(savedDevices);
+                    originalDevices = [...devices];
+                } catch (e) {}
+            }
+            
+            // بدء التطبيق مباشرة من الصفحة الرئيسية
+            homePage();
+        })();
+    </script>
+</body>
+</html>
